@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.StudyMate">
+
+        <activity android:name=".ui.MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.CoursesActivity" />
+        <activity android:name=".ui.RoutineActivity" />
+        <activity android:name=".ui.AttendanceActivity" />
+        <activity android:name=".ui.GpaActivity" />
+        <activity android:name=".ui.AssignmentsActivity" />
+        <activity android:name=".ui.ExamsActivity" />
+        <activity android:name=".ui.NotesActivity" />
+        <activity android:name=".ui.NoteEditActivity" />
+        <activity android:name=".ui.PomodoroActivity" />
+        <activity android:name=".ui.SettingsActivity" />
+        <activity android:name=".ui.DocumentToolsActivity" />
+        <activity android:name=".ui.PdfLibraryActivity" />
+        <activity android:name=".ui.PdfReaderActivity" />
+        <activity android:name=".ui.PptxViewerActivity" />
+        <activity android:name=".ui.DocxViewerActivity" />
+        <activity android:name=".ui.ImageToPdfActivity" />
+        <activity android:name=".ui.CourseFilesActivity" />
+        <activity android:name=".ui.MergePdfActivity" />
+
+        <receiver android:name=".widget.RoutineWidgetProvider" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>

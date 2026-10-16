@@ -1,0 +1,16 @@
+<resources>
+    <color name="brand">#3F51B5</color>
+    <color name="brand_dark">#9FA8DA</color>
+    <color name="icon_bg">#3F51B5</color>
+    <color name="danger">#D32F2F</color>
+    <color name="ok">#388E3C</color>
+    <color name="warn">#F57C00</color>
+    <color name="tool_red">#E53935</color>
+    <color name="tool_orange">#FB8C00</color>
+    <color name="tool_amber">#FFB300</color>
+    <color name="tool_blue">#1E88E5</color>
+    <color name="tool_indigo">#5E35B1</color>
+    <color name="tool_green">#43A047</color>
+    <color name="tool_teal">#00897B</color>
+    <color name="tool_purple">#8E24AA</color>
+</resources>
