@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # StudyMate – Academic Management App (Java, Android Studio)
 
 Fully offline Android app (Java, minSdk 26, targetSdk 34). No server, no network permission.
@@ -55,3 +56,7 @@ widget/     Home-screen widget (today's classes)
   *Import shared routine* (paste the text). Scanning inside the app is not included.
 * The Pomodoro session is recorded when the timer finishes while the app process is alive; the background
   notification still fires if the app is closed.
+=======
+# StudyMate
+An All-in-One Student Companion and Document Toolkit for Android
+>>>>>>> 545e35b4ef1a5d2a0c3f563c1b2ba30c85cfadc8
