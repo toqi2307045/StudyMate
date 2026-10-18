@@ -22,7 +22,7 @@ import com.example.studymate.util.NotificationHelper;
 import com.example.studymate.util.ReminderScheduler;
 import com.example.studymate.util.RoutineShare;
 import com.example.studymate.widget.RoutineWidgetProvider;
-
+import com.example.studymate.util.GradeScale;
 import java.util.List;
 import java.util.Map;
 
@@ -160,6 +160,18 @@ public class Repository {
 
     // ---------------- GPA ----------------
     public LiveData<List<Semester>> semesters() { return db.semesterDao().observeAll(); }
+    /** Re-maps stored grade points by letter after the grading scale changes. */
+    public void regradeAll(GradeScale scale) {
+        io(() -> db.runInTransaction(() -> {
+            for (GradeEntry g : db.gradeDao().all()) {
+                int i = scale.indexOf(g.gradeLetter);
+                if (i >= 0) {
+                    g.gradePoint = scale.points[i];
+                    db.gradeDao().update(g);
+                }
+            }
+        }));
+    }
 
     public LiveData<List<GradeEntry>> grades() { return db.gradeDao().observeAll(); }
 
@@ -185,6 +197,7 @@ public class Repository {
     }
 
     public void deleteGrade(GradeEntry g) { io(() -> db.gradeDao().delete(g)); }
+
 
     // ---------------- assignments ----------------
     public LiveData<List<Assignment>> assignments() { return db.assignmentDao().observeAll(); }

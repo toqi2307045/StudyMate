@@ -17,6 +17,7 @@ import com.example.studymate.data.entity.Semester;
 import com.example.studymate.databinding.ActivityGpaBinding;
 import com.example.studymate.util.Grades;
 import com.example.studymate.viewmodel.GpaViewModel;
+import com.example.studymate.util.GradeScale;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,7 +87,7 @@ public class GpaActivity extends BaseActivity {
             List<List<Double>> series = new ArrayList<>();
             series.add(s.gpas);
             series.add(s.cgpas);
-            b.chart.setData(s.labels, Arrays.asList("Semester GPA", "CGPA"), series, 4.0);
+            b.chart.setData(s.labels, Arrays.asList("Semester GPA", "CGPA"), series, Grades.current(this).max());
             invalidateOptionsMenu();
         });
 
@@ -116,10 +117,21 @@ public class GpaActivity extends BaseActivity {
             showSemesterForm(null);
             return;
         }
+        GradeScale scale = Grades.current(this);
         FormDialog f = new FormDialog(this);
         EditText name = f.text("Course name", existing == null ? "" : existing.courseName);
         EditText credit = f.number("Credit hours", existing == null ? "3" : trim(existing.credit));
-        Spinner grade = f.spinner("Grade", Arrays.asList(Grades.LETTERS), existing == null ? 0 : Grades.indexOf(existing.gradeLetter));
+
+        List<String> labels = new ArrayList<>();
+        for (int i = 0; i < scale.letters.length; i++) labels.add(scale.label(i));
+        int idx = existing == null ? 0 : scale.indexOf(existing.gradeLetter);
+        if (idx < 0) {
+            UiUtil.toast(this, "\"" + existing.gradeLetter + "\" isn't in the " + scale.name + " scale - pick the grade again");
+            idx = 0;
+        }
+        Spinner grade = f.spinner("Grade  (" + scale.name + ")", labels, idx);
+        EditText marks = f.number("Marks % (optional - overrides the grade above)", "");
+
         long semId = current.selected.id;
         f.show(existing == null ? "Add course grade" : "Edit course grade", "Save", () -> {
             if (FormDialog.str(name).isEmpty()) { name.setError("Required"); return false; }
@@ -131,12 +143,26 @@ public class GpaActivity extends BaseActivity {
                 return false;
             }
             if (cr <= 0) { credit.setError("Must be above 0"); return false; }
+
+            int gi = grade.getSelectedItemPosition();
+            String m = FormDialog.str(marks);
+            if (!m.isEmpty()) {
+                try {
+                    double pct = Double.parseDouble(m);
+                    if (pct < 0 || pct > 100) throw new NumberFormatException();
+                    gi = scale.indexForPercent(pct);
+                } catch (NumberFormatException e) {
+                    marks.setError("Enter 0-100");
+                    return false;
+                }
+            }
+
             GradeEntry g = existing == null ? new GradeEntry() : existing;
             g.semesterId = existing == null ? semId : existing.semesterId;
             g.courseName = FormDialog.str(name);
             g.credit = cr;
-            g.gradeLetter = Grades.LETTERS[grade.getSelectedItemPosition()];
-            g.gradePoint = Grades.POINTS[grade.getSelectedItemPosition()];
+            g.gradeLetter = scale.letters[gi];
+            g.gradePoint = scale.points[gi];
             vm.saveGrade(g);
             return true;
         });
@@ -152,7 +178,11 @@ public class GpaActivity extends BaseActivity {
         addMenu(menu, M_DELETE_SEM, "Delete semester");
         return true;
     }
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (getSupportActionBar() != null) getSupportActionBar().setSubtitle(Grades.current(this).name);
+    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (current == null || current.selected == null) return super.onOptionsItemSelected(item);

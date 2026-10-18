@@ -16,10 +16,12 @@ import com.example.studymate.data.Repository;
 import com.example.studymate.databinding.ActivityContainerBinding;
 import com.example.studymate.util.AppExecutors;
 import com.example.studymate.util.FileUtil;
+import com.example.studymate.util.Grades;
 import com.example.studymate.util.Prefs;
 import com.example.studymate.util.PdfStorage;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.example.studymate.util.GradeScale;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -65,6 +67,8 @@ public class SettingsActivity extends BaseActivity {
         buttonRow("Export as JSON", "All routine, attendance, grades, tasks, exams, notes and study data", v -> exportJson.launch("StudyMate_backup.json"));
         buttonRow("Export as CSV", "Sectioned CSV you can open in a spreadsheet", v -> exportCsv.launch("StudyMate_backup.csv"));
         buttonRow("Import backup (JSON or CSV)", "Replaces the data currently in the app", v -> importPicker.launch(new String[]{"*/*"}));
+        section("GPA scale");
+        gpaScaleSummary = buttonRow("Grading scale", gpaScaleText(), v -> pickGradeScale());
         section("Saved PDFs");
         saveFolderSummary = buttonRow("Folder for merged & converted PDFs", PdfStorage.describe(this),
                 v -> folderPicker.launch(null));
@@ -80,7 +84,31 @@ public class SettingsActivity extends BaseActivity {
         section("About");
         buttonRow("StudyMate 1.0", "Works fully offline - all data stays on this device", null);
     }
+    private String gpaScaleText() {
+        GradeScale s = Grades.current(this);
+        return s.name + " · " + s.summary;
+    }
 
+    private void pickGradeScale() {
+        GradeScale cur = Grades.current(this);
+        String[] labels = new String[Grades.ALL.length];
+        int checked = 0;
+        for (int i = 0; i < labels.length; i++) {
+            labels[i] = Grades.ALL[i].name + " (" + Grades.ALL[i].summary + ")";
+            if (Grades.ALL[i].id.equals(cur.id)) checked = i;
+        }
+        new MaterialAlertDialogBuilder(this).setTitle("Grading scale")
+                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                    GradeScale s = Grades.ALL[which];
+                    if (!s.id.equals(cur.id)) {
+                        Grades.setCurrent(this, s);
+                        repo.regradeAll(s);
+                        UiUtil.toast(this, "Grading scale: " + s.name);
+                    }
+                    gpaScaleSummary.setText(gpaScaleText());
+                    d.dismiss();
+                }).setNegativeButton("Cancel", null).show();
+    }
     private String classLeadText() { return Prefs.classLeadMin(this) + " minutes before each class"; }
 
     private String assignLeadText() { return Prefs.assignLeadHours(this) + " hours before the due time"; }
@@ -136,7 +164,7 @@ public class SettingsActivity extends BaseActivity {
         });
     }
     private TextView saveFolderSummary;
-
+    private TextView gpaScaleSummary;
     private final ActivityResultLauncher<Uri> folderPicker =
             registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), uri -> {
                 if (uri == null) return;

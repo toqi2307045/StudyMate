@@ -55,7 +55,7 @@ public class LineChartView extends View {
         float w = getWidth() - left - right, h = getHeight() - top - bottom;
         if (w <= 0 || h <= 0) return;
 
-        int steps = 4;
+        int steps = yMax > 4 ? (int) Math.round(yMax) : 4;
         for (int i = 0; i <= steps; i++) {
             float y = top + h - h * i / steps;
             c.drawLine(left, y, left + w, y, grid);
