@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.studymate.R;
 import com.example.studymate.util.AppExecutors;
 import com.example.studymate.util.FileUtil;
+import com.example.studymate.util.PdfStorage;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -82,16 +83,10 @@ public class MergePdfActivity extends AppCompatActivity {
             try {
                 File out = new File(FileUtil.convertedDir(this), "merged_" + System.currentTimeMillis() + ".pdf");
                 PdfMerger.merge(this, uris, out);
-                runOnUiThread(() -> {
-                    dlg.dismiss();
-                    Toast.makeText(this, "PDFs merged successfully", Toast.LENGTH_SHORT).show();
-                    Intent i = new Intent(this, PdfReaderActivity.class);
-                    i.putExtra("uri", Uri.fromFile(out).toString());
-                    i.putExtra("name", out.getName());
-                    startActivity(i);
-                    finish();
-                });
-            } catch (IOException e) {
+                runOnUiThread(dlg::dismiss);
+                PdfStorage.deliver(this, out);
+                runOnUiThread(this::finish);
+            } catch (Exception e) {
                 runOnUiThread(() -> {
                     dlg.dismiss();
                     Toast.makeText(this, "Merge failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();

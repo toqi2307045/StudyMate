@@ -2,6 +2,7 @@ package com.example.studymate.ui;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.print.PdfPrinter;
 import android.print.PrintAttributes;
 import android.print.PrintManager;
 import android.view.Menu;
@@ -16,6 +17,7 @@ import com.example.studymate.docs.DocxParser;
 import com.example.studymate.docs.ParserFactory;
 import com.example.studymate.util.AppExecutors;
 import com.example.studymate.util.FileUtil;
+import com.example.studymate.util.PdfStorage;
 
 import java.io.File;
 
@@ -71,6 +73,7 @@ public class DocxViewerActivity extends BaseActivity {
 
     private void exportPdf() {
         if (bodyHtml == null) return;
+        UiUtil.toast(this, "Creating PDF...");
         printView = new WebView(this);
         printView.getSettings().setJavaScriptEnabled(false);
         printView.setWebViewClient(new WebViewClient() {
@@ -81,12 +84,24 @@ public class DocxViewerActivity extends BaseActivity {
                 if (started) return;
                 started = true;
                 String job = FileUtil.baseName(name);
-                PrintManager pm = (PrintManager) getSystemService(PRINT_SERVICE);
-                pm.print(job, view.createPrintDocumentAdapter(job), new PrintAttributes.Builder().build());
-                UiUtil.toast(DocxViewerActivity.this, "Choose \"Save as PDF\" as the printer");
+                File out = new File(FileUtil.convertedDir(DocxViewerActivity.this), job + ".pdf");
+                try {
+                    PdfPrinter.write(view.createPrintDocumentAdapter(job), out, (ok, error) -> {
+                        if (ok) AppExecutors.io(() -> PdfStorage.deliver(DocxViewerActivity.this, out));
+                        else printWithDialog(view, job); // fallback: old print dialog
+                    });
+                } catch (Throwable t) {
+                    printWithDialog(view, job);
+                }
             }
         });
         printView.loadDataWithBaseURL(null, DocxParser.wrap(bodyHtml, false), "text/html", "utf-8", null);
+    }
+
+    private void printWithDialog(WebView view, String job) {
+        PrintManager pm = (PrintManager) getSystemService(PRINT_SERVICE);
+        pm.print(job, view.createPrintDocumentAdapter(job), new PrintAttributes.Builder().build());
+        UiUtil.toast(this, "Choose \"Save as PDF\" as the printer");
     }
 
     @Override

@@ -17,6 +17,7 @@ import com.example.studymate.databinding.ActivityContainerBinding;
 import com.example.studymate.util.AppExecutors;
 import com.example.studymate.util.FileUtil;
 import com.example.studymate.util.Prefs;
+import com.example.studymate.util.PdfStorage;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
@@ -64,7 +65,14 @@ public class SettingsActivity extends BaseActivity {
         buttonRow("Export as JSON", "All routine, attendance, grades, tasks, exams, notes and study data", v -> exportJson.launch("StudyMate_backup.json"));
         buttonRow("Export as CSV", "Sectioned CSV you can open in a spreadsheet", v -> exportCsv.launch("StudyMate_backup.csv"));
         buttonRow("Import backup (JSON or CSV)", "Replaces the data currently in the app", v -> importPicker.launch(new String[]{"*/*"}));
-
+        section("Saved PDFs");
+        saveFolderSummary = buttonRow("Folder for merged & converted PDFs", PdfStorage.describe(this),
+                v -> folderPicker.launch(null));
+        buttonRow("Reset to default folder", PdfStorage.defaultLabel(), v -> {
+            PdfStorage.resetToDefault(this);
+            saveFolderSummary.setText(PdfStorage.describe(this));
+            UiUtil.toast(this, "PDFs will be saved to " + PdfStorage.describe(this));
+        });
         section("Document tools");
         buttonRow("Open document tools", "PDF reader, PPTX/DOCX viewers, converters, image to PDF",
                 v -> startActivity(new Intent(this, DocumentToolsActivity.class)));
@@ -127,6 +135,15 @@ public class SettingsActivity extends BaseActivity {
             });
         });
     }
+    private TextView saveFolderSummary;
+
+    private final ActivityResultLauncher<Uri> folderPicker =
+            registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), uri -> {
+                if (uri == null) return;
+                PdfStorage.setCustomTree(this, uri);
+                saveFolderSummary.setText(PdfStorage.describe(this));
+                UiUtil.toast(this, "PDFs will be saved to " + PdfStorage.describe(this));
+            });
 
     // ---------- tiny UI builders ----------
     private void section(String title) {

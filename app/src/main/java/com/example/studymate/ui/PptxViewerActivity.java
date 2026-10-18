@@ -24,6 +24,7 @@ import com.example.studymate.docs.PptxModel;
 import com.example.studymate.docs.SlideRenderer;
 import com.example.studymate.util.AppExecutors;
 import com.example.studymate.util.FileUtil;
+import com.example.studymate.util.PdfStorage;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
@@ -124,12 +125,7 @@ public class PptxViewerActivity extends BaseActivity {
             try {
                 File out = new File(FileUtil.convertedDir(this), FileUtil.baseName(name) + ".pdf");
                 ExporterFactory.slides().export(this, model, out, null);
-                AppExecutors.main(() -> {
-                    UiUtil.toast(this, "Saved " + out.getName());
-                    startActivity(new Intent(this, PdfReaderActivity.class)
-                            .putExtra("uri", FileUtil.shareUri(this, out).toString())
-                            .putExtra("name", out.getName()));
-                });
+                PdfStorage.deliver(this, out);
             } catch (Exception e) {
                 AppExecutors.main(() -> UiUtil.toast(this, "Conversion failed: " + e.getMessage()));
             }

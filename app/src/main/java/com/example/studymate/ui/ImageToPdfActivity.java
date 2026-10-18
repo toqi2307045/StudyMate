@@ -31,6 +31,7 @@ import com.example.studymate.docs.ImagePage;
 import com.example.studymate.docs.ImageUtil;
 import com.example.studymate.util.AppExecutors;
 import com.example.studymate.util.FileUtil;
+import com.example.studymate.util.PdfStorage;
 import com.example.studymate.viewmodel.ImageToPdfViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -157,13 +158,8 @@ public class ImageToPdfActivity extends BaseActivity {
                 File out = new File(FileUtil.convertedDir(this), "images_" + System.currentTimeMillis() + ".pdf");
                 ExporterFactory.images(opts).export(this, snapshot, out,
                         (done, total) -> AppExecutors.main(() -> pb.setProgress(done)));
-                AppExecutors.main(() -> {
-                    dlg.dismiss();
-                    UiUtil.toast(this, "PDF saved");
-                    startActivity(new Intent(this, PdfReaderActivity.class)
-                            .putExtra("uri", FileUtil.shareUri(this, out).toString())
-                            .putExtra("name", out.getName()));
-                });
+                AppExecutors.main(dlg::dismiss);
+                PdfStorage.deliver(this, out);
             } catch (Exception e) {
                 AppExecutors.main(() -> {
                     dlg.dismiss();
