@@ -5,10 +5,12 @@ import android.content.Context;
 public final class Grades {
     private Grades() {}
 
-    public static final GradeScale KUET = new GradeScale("kuet", "KUET", "4.00 scale, A+ = 80%+",
+    public static final GradeScale GENERAL_UNIVERSITY = new GradeScale("kuet", "General University", "4.00 scale, A+ = 80%+",
             new String[]{"A+", "A", "A-", "B+", "B", "B-", "C+", "C", "D", "F"},
             new double[]{4.00, 3.75, 3.50, 3.25, 3.00, 2.75, 2.50, 2.25, 2.00, 0.00},
             new int[]{80, 75, 70, 65, 60, 55, 50, 45, 40, 0});
+
+    public static final GradeScale KUET = GENERAL_UNIVERSITY;
 
     public static final GradeScale NORTH_AMERICA = new GradeScale("na", "North America", "4.0 scale, A = 93%+",
             new String[]{"A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"},
@@ -21,12 +23,12 @@ public final class Grades {
             new double[]{5.00, 4.00, 3.50, 3.00, 2.00, 1.00, 0.00},
             new int[]{80, 70, 60, 50, 40, 33, 0});
 
-    public static final GradeScale[] ALL = {KUET, NORTH_AMERICA, BD_SCHOOL};
+    public static final GradeScale[] ALL = {GENERAL_UNIVERSITY, NORTH_AMERICA, BD_SCHOOL};
 
     public static GradeScale current(Context c) {
-        String id = Prefs.getString(c, "grade_scale", KUET.id);
+        String id = Prefs.getString(c, "grade_scale", GENERAL_UNIVERSITY.id);
         for (GradeScale s : ALL) if (s.id.equals(id)) return s;
-        return KUET;
+        return GENERAL_UNIVERSITY;
     }
 
     public static void setCurrent(Context c, GradeScale s) { Prefs.putString(c, "grade_scale", s.id); }
