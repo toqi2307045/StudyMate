@@ -19,6 +19,12 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <FrameLayout
+                android:id="@+id/modeHolder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
             <TextView
                 android:id="@+id/phaseLabel"
                 android:layout_width="match_parent"
@@ -42,6 +48,13 @@
                 android:layout_height="wrap_content"
                 android:alpha="0.7"
                 android:gravity="center" />
+            <Button
+                android:id="@+id/btnSettings"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Timer Customization" />
 
             <Spinner
                 android:id="@+id/courseSpinner"

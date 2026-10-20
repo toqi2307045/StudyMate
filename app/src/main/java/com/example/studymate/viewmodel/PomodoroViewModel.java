@@ -48,6 +48,12 @@ public class PomodoroViewModel extends AndroidViewModel {
         return min * 60_000L;
     }
 
+    /** Called after the user changes durations. A running timer keeps going; new values apply next phase. */
+    public void applySettings() {
+        if (Boolean.TRUE.equals(running.getValue())) return;
+        reset();
+    }
+
     public void start() {
         if (Boolean.TRUE.equals(running.getValue())) return;
         long ms = remainingMs.getValue() == null ? phaseMillis(FOCUS) : remainingMs.getValue();
@@ -76,6 +82,14 @@ public class PomodoroViewModel extends AndroidViewModel {
         remainingMs.setValue(phaseMillis(phase.getValue() == null ? FOCUS : phase.getValue()));
     }
 
+    public void setPhase(int newPhase) {
+        if (phase.getValue() != null && phase.getValue() == newPhase) return;
+        pause();
+        phaseStart = 0;
+        phase.setValue(newPhase);
+        remainingMs.setValue(phaseMillis(newPhase));
+    }
+
     public void skip() {
         pause();
         phaseStart = 0;
@@ -102,7 +116,7 @@ public class PomodoroViewModel extends AndroidViewModel {
         int p = phase.getValue() == null ? FOCUS : phase.getValue();
         int done = completedFocus.getValue() == null ? 0 : completedFocus.getValue();
         int next;
-        if (p == FOCUS) next = (done > 0 && done % 4 == 0) ? LONG_BREAK : SHORT_BREAK;
+        if (p == FOCUS) next = (done > 0 && done % Prefs.longBreakEvery(getApplication()) == 0) ? LONG_BREAK : SHORT_BREAK;
         else next = FOCUS;
         phase.setValue(next);
         remainingMs.setValue(phaseMillis(next));

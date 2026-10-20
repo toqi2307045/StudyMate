@@ -36,6 +36,7 @@ public final class Prefs {
     public static int focusMin(Context c) { return getInt(c, "focus_min", 25); }
     public static int shortBreakMin(Context c) { return getInt(c, "short_min", 5); }
     public static int longBreakMin(Context c) { return getInt(c, "long_min", 15); }
+    public static int longBreakEvery(Context c) { return getInt(c, "long_every", 4); }
     public static boolean pdfNight(Context c) { return getBool(c, "pdf_night", false); }
     public static String getString(Context c, String key, String def) { return sp(c).getString(key, def); }
 
