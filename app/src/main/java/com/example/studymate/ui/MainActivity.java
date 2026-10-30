@@ -55,6 +55,12 @@ public class MainActivity extends BaseActivity {
         setContentView(b.getRoot());
         setupToolbar(b.toolbar, "StudyMate", false);
 
+        if (!com.example.studymate.firebase.FirebaseSync.isSignedIn()
+                && !com.example.studymate.util.Prefs.getBool(this, "skip_login_prompt", false)
+                && savedInstanceState == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+        }
+
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this,
                 Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS);

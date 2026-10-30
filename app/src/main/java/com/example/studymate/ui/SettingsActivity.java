@@ -63,6 +63,33 @@ public class SettingsActivity extends BaseActivity {
         classLeadSummary = buttonRow("Class reminder", classLeadText(), v -> pickLead(true));
         assignLeadSummary = buttonRow("Assignment reminder", assignLeadText(), v -> pickLead(false));
 
+        section("Firebase Cloud Sync");
+        if (com.example.studymate.firebase.FirebaseSync.isSignedIn()) {
+            com.google.firebase.auth.FirebaseUser user = com.example.studymate.firebase.FirebaseSync.currentUser();
+            String email = (user != null && user.getEmail() != null) ? user.getEmail() : "Guest User (Anonymous)";
+            buttonRow("Signed in as " + email, "Syncs automatically across devices", null);
+            buttonRow("Sync to Cloud Now", "Upload local study data to Cloud Firestore", v -> {
+                com.example.studymate.firebase.FirebaseSync.pushToCloud(this, new com.example.studymate.firebase.FirebaseSync.SyncCallback() {
+                    @Override public void onSuccess() { UiUtil.toast(SettingsActivity.this, "Data synced to Cloud!"); }
+                    @Override public void onError(String error) { UiUtil.toast(SettingsActivity.this, error); }
+                });
+            });
+            buttonRow("Pull from Cloud", "Restore study data from Cloud Firestore", v -> {
+                com.example.studymate.firebase.FirebaseSync.pullFromCloud(this, new com.example.studymate.firebase.FirebaseSync.SyncCallback() {
+                    @Override public void onSuccess() { UiUtil.toast(SettingsActivity.this, "Data pulled from Cloud!"); }
+                    @Override public void onError(String error) { UiUtil.toast(SettingsActivity.this, error); }
+                });
+            });
+            buttonRow("Sign Out", "Disconnect from Firebase Cloud account", v -> {
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
+                UiUtil.toast(this, "Signed out");
+                recreate();
+            });
+        } else {
+            buttonRow("Sign In / Register for Cloud Sync", "Connect with Firebase to back up data & sync devices",
+                    v -> startActivity(new Intent(this, LoginActivity.class)));
+        }
+
         section("Backup");
         buttonRow("Export as JSON", "All routine, attendance, grades, tasks, exams, notes and study data", v -> exportJson.launch("StudyMate_backup.json"));
         buttonRow("Export as CSV", "Sectioned CSV you can open in a spreadsheet", v -> exportCsv.launch("StudyMate_backup.csv"));

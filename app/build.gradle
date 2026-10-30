@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.application'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -49,6 +50,12 @@ dependencies {
 
     // Background work + biometrics + QR
     implementation 'androidx.work:work-runtime:2.9.0'
+    implementation 'com.google.guava:guava:31.1-android'
     implementation 'androidx.biometric:biometric:1.1.0'
     implementation 'com.google.zxing:core:3.5.2'
+
+    // Firebase BoM + Auth + Firestore
+    implementation platform('com.google.firebase:firebase-bom:33.9.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
 }

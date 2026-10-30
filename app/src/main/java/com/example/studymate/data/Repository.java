@@ -298,6 +298,12 @@ public class Repository {
         RoutineWidgetProvider.refresh(app);
     }
 
+    public void syncIfSignedIn() {
+        if (com.example.studymate.firebase.FirebaseSync.isSignedIn()) {
+            com.example.studymate.firebase.FirebaseSync.pushToCloud(app, null);
+        }
+    }
+
     public void rescheduleAll() { io(this::rescheduleAllBlocking); }
 
     private void rescheduleAllBlocking() {
