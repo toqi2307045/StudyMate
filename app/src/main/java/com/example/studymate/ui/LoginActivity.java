@@ -25,6 +25,7 @@ public class LoginActivity extends BaseActivity {
         b.btnLogin.setOnClickListener(v -> doLogin());
         b.btnRegister.setOnClickListener(v -> doRegister());
         b.btnAnonymous.setOnClickListener(v -> doAnonymous());
+        b.btnForgotPassword.setOnClickListener(v -> doForgotPassword());
         b.btnSkip.setOnClickListener(v -> {
             com.example.studymate.util.Prefs.putBool(this, "skip_login_prompt", true);
             UiUtil.toast(this, "Using StudyMate in Offline Mode");
@@ -37,6 +38,7 @@ public class LoginActivity extends BaseActivity {
         b.btnLogin.setEnabled(!loading);
         b.btnRegister.setEnabled(!loading);
         b.btnAnonymous.setEnabled(!loading);
+        b.btnForgotPassword.setEnabled(!loading);
     }
 
     private void doLogin() {
@@ -107,6 +109,39 @@ public class LoginActivity extends BaseActivity {
                 .addOnFailureListener(e -> {
                     setLoading(false);
                     UiUtil.toast(this, "Guest sign in failed: " + parseError(e));
+                });
+    }
+
+    private void doForgotPassword() {
+        String email = FormDialog.str(b.etEmail);
+        if (TextUtils.isEmpty(email)) {
+            FormDialog f = new FormDialog(this);
+            android.widget.EditText input = f.text("Email Address", "");
+            input.setHint("Enter your account email");
+            f.show("Reset Password", "Send Reset Link", () -> {
+                String inputEmail = FormDialog.str(input).trim();
+                if (TextUtils.isEmpty(inputEmail)) {
+                    input.setError("Email required");
+                    return false;
+                }
+                sendResetEmail(inputEmail);
+                return true;
+            });
+        } else {
+            sendResetEmail(email.trim());
+        }
+    }
+
+    private void sendResetEmail(String email) {
+        setLoading(true);
+        mAuth.sendPasswordResetEmail(email)
+                .addOnSuccessListener(aVoid -> {
+                    setLoading(false);
+                    UiUtil.toast(this, "Reset link sent to " + email + "! Please check your Inbox and Spam/Junk folder.");
+                })
+                .addOnFailureListener(e -> {
+                    setLoading(false);
+                    UiUtil.toast(this, "Failed: " + parseError(e));
                 });
     }
 
