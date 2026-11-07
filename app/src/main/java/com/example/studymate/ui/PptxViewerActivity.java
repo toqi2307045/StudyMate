@@ -119,15 +119,35 @@ public class PptxViewerActivity extends BaseActivity {
     }
 
     private void convertToPdf() {
-        if (model == null) return;
-        UiUtil.toast(this, "Converting to PDF...");
+        if (model == null || model.slides.isEmpty()) {
+            UiUtil.toast(this, "No slides available to convert");
+            return;
+        }
+
+        android.widget.ProgressBar pb = new android.widget.ProgressBar(this);
+        pb.setPadding(UiUtil.dp(this, 24), UiUtil.dp(this, 16), UiUtil.dp(this, 24), 0);
+        androidx.appcompat.app.AlertDialog dlg = new MaterialAlertDialogBuilder(this)
+                .setTitle("Converting to PDF...")
+                .setView(pb)
+                .setCancelable(false)
+                .show();
+
+        boolean autoConvert = getIntent().getBooleanExtra("autoConvert", false);
+
         AppExecutors.io(() -> {
             try {
                 File out = new File(FileUtil.convertedDir(this), FileUtil.baseName(name) + ".pdf");
                 ExporterFactory.slides().export(this, model, out, null);
-                PdfStorage.deliver(this, out);
+                AppExecutors.main(() -> {
+                    dlg.dismiss();
+                    PdfStorage.deliver(this, out);
+                    if (autoConvert) finish();
+                });
             } catch (Exception e) {
-                AppExecutors.main(() -> UiUtil.toast(this, "Conversion failed: " + e.getMessage()));
+                AppExecutors.main(() -> {
+                    dlg.dismiss();
+                    UiUtil.toast(this, "Conversion failed: " + e.getMessage());
+                });
             }
         });
     }
@@ -144,9 +164,16 @@ public class PptxViewerActivity extends BaseActivity {
 
     private void showFallback(String reason) {
         b.loading.setVisibility(View.GONE);
+        String msg;
+        if (reason != null && (reason.toLowerCase().contains("zip") || reason.toLowerCase().contains("header"))) {
+            msg = "This file appears to be an older binary PowerPoint (.ppt) file or is corrupted. The built-in viewer requires modern XML (.pptx) files.\n\nWould you like to open it in an external app (such as Microsoft PowerPoint or Google Slides)?";
+        } else {
+            msg = "The built-in viewer could not read this file (" + reason + "). Open it in another app instead?";
+        }
+
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Can't display this presentation")
-                .setMessage("The built-in viewer could not read this file (" + reason + "). Open it in another app instead?")
+                .setMessage(msg)
                 .setPositiveButton("Open in another app", (d, w) -> { openExternal(); finish(); })
                 .setNegativeButton("Close", (d, w) -> finish())
                 .setCancelable(false)

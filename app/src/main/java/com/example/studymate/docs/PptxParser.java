@@ -55,7 +55,10 @@ public class PptxParser implements DocumentParser<PptxModel> {
                     r.id = p.getAttributeValue(null, "Id");
                     r.type = p.getAttributeValue(null, "Type");
                     String t = p.getAttributeValue(null, "Target");
-                    r.target = t == null ? null : resolve(part, t);
+                    if (t != null) {
+                        t = t.replace('\\', '/');
+                        r.target = resolve(part, t);
+                    }
                     rels.add(r);
                 }
             }
@@ -164,6 +167,25 @@ public class PptxParser implements DocumentParser<PptxModel> {
 
     @Override
     public PptxModel parse(java.io.File file) throws Exception {
+        if (file == null || !file.exists() || file.length() < 4) {
+            throw new IOException("File is empty or unreadable");
+        }
+
+        try (java.io.FileInputStream check = new java.io.FileInputStream(file)) {
+            byte[] header = new byte[4];
+            int read = check.read(header);
+            if (read == 4) {
+                // OLE Compound File header: D0 CF 11 E0 (legacy binary .ppt)
+                if ((header[0] & 0xFF) == 0xD0 && (header[1] & 0xFF) == 0xCF) {
+                    throw new IOException("Legacy binary PowerPoint (.ppt) file detected");
+                }
+                // ZIP file header: 50 4B 03 04 ("PK..")
+                if ((header[0] & 0xFF) != 0x50 || (header[1] & 0xFF) != 0x4B) {
+                    throw new IOException("File is not a valid XML .pptx archive");
+                }
+            }
+        }
+
         ZipFile zip = new ZipFile(file);
         PptxModel model = new PptxModel();
         model.zip = zip;
@@ -188,6 +210,17 @@ public class PptxParser implements DocumentParser<PptxModel> {
                     } else if (p.getName().equals("p:sldId")) {
                         String t = relTargets.get(p.getAttributeValue(null, "r:id"));
                         if (t != null) slidePaths.add(t);
+                    }
+                }
+            }
+
+            if (slidePaths.isEmpty()) {
+                for (int i = 1; ; i++) {
+                    String sp = "ppt/slides/slide" + i + ".xml";
+                    if (zip.getEntry(sp) != null) {
+                        slidePaths.add(sp);
+                    } else {
+                        break;
                     }
                 }
             }

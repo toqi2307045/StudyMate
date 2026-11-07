@@ -54,13 +54,33 @@ public final class FileUtil {
     public static File copyToCache(Context c, Uri uri, String ext) throws IOException {
         File dir = new File(c.getCacheDir(), "docs");
         if (!dir.exists()) dir.mkdirs();
-        File out = new File(dir, Math.abs(uri.toString().hashCode()) + "." + ext);
-        try (InputStream in = c.getContentResolver().openInputStream(uri);
+        File out = new File(dir, System.currentTimeMillis() + "_" + Math.abs(uri.toString().hashCode()) + "." + ext);
+        if (out.exists()) out.delete();
+
+        InputStream in = null;
+        try {
+            in = c.getContentResolver().openInputStream(uri);
+        } catch (Exception ignored) { }
+
+        if (in == null) {
+            try {
+                android.os.ParcelFileDescriptor pfd = c.getContentResolver().openFileDescriptor(uri, "r");
+                if (pfd != null) in = new android.os.ParcelFileDescriptor.AutoCloseInputStream(pfd);
+            } catch (Exception ignored) { }
+        }
+
+        if (in == null) throw new IOException("Cannot open file stream");
+
+        try (InputStream input = in;
              OutputStream os = new FileOutputStream(out)) {
-            if (in == null) throw new IOException("Cannot open file");
-            byte[] buf = new byte[16384];
+            byte[] buf = new byte[32768];
             int n;
-            while ((n = in.read(buf)) > 0) os.write(buf, 0, n);
+            long total = 0;
+            while ((n = input.read(buf)) > 0) {
+                os.write(buf, 0, n);
+                total += n;
+            }
+            if (total == 0) throw new IOException("File is empty (0 bytes)");
         }
         return out;
     }
