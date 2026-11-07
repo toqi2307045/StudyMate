@@ -138,11 +138,9 @@ public class PptxViewerActivity extends BaseActivity {
             try {
                 File out = new File(FileUtil.convertedDir(this), FileUtil.baseName(name) + ".pdf");
                 ExporterFactory.slides().export(this, model, out, null);
-                AppExecutors.main(() -> {
-                    dlg.dismiss();
-                    PdfStorage.deliver(this, out);
-                    if (autoConvert) finish();
-                });
+                AppExecutors.main(dlg::dismiss);
+                PdfStorage.deliver(this, out);          // already on a background thread
+                if (autoConvert) AppExecutors.main(this::finish);
             } catch (Exception e) {
                 AppExecutors.main(() -> {
                     dlg.dismiss();

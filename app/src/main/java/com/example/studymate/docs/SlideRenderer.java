@@ -25,6 +25,12 @@ public final class SlideRenderer {
     }
 
     public static void draw(PptxModel m, PptxModel.Slide s, Canvas c, float w, float h, int imgMaxDim) {
+        draw(m, s, c, w, h, imgMaxDim, null);
+    }
+
+    /** If keepAlive is non-null, decoded images are added to it instead of being recycled. */
+    public static void draw(PptxModel m, PptxModel.Slide s, Canvas c, float w, float h,
+                            int imgMaxDim, List<Bitmap> keepAlive) {
         c.drawColor(Color.WHITE);
         float ex = w / m.widthEmu, ey = h / m.heightEmu;
         float pxPerPt = w / (m.widthEmu / 12700f);
@@ -49,7 +55,7 @@ public final class SlideRenderer {
                 r = new RectF(w * 0.07f, top + slot * bodyIdx, w * 0.93f, top + slot * (bodyIdx + 1));
                 bodyIdx++;
             }
-            if (sh.image) drawImage(m, sh, c, r, imgMaxDim);
+            if (sh.image) drawImage(m, sh, c, r, imgMaxDim, keepAlive);
             else drawText(sh, c, r, pxPerPt);
         }
     }
@@ -58,7 +64,8 @@ public final class SlideRenderer {
         return sh.x >= 0 && sh.y >= 0 && sh.w > 0 && sh.h > 0;
     }
 
-    private static void drawImage(PptxModel m, PptxModel.Shape sh, Canvas c, RectF r, int maxDim) {
+    private static void drawImage(PptxModel m, PptxModel.Shape sh, Canvas c, RectF r,
+                                  int maxDim, List<Bitmap> keepAlive) {
         Bitmap bmp = m.loadImage(sh.mediaPath, maxDim);
         Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
         if (bmp == null) {
@@ -70,7 +77,7 @@ public final class SlideRenderer {
         float dw = bmp.getWidth() * scale, dh = bmp.getHeight() * scale;
         float left = r.left + (r.width() - dw) / 2, top = r.top + (r.height() - dh) / 2;
         c.drawBitmap(bmp, null, new RectF(left, top, left + dw, top + dh), paint);
-        bmp.recycle();
+        if (keepAlive != null) keepAlive.add(bmp); else bmp.recycle();
     }
 
     private static List<StaticLayout> layouts(PptxModel.Shape sh, float width, float pxPerPt, float scale, float[] totalOut) {
