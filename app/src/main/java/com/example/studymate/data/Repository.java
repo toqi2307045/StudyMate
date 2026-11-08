@@ -85,6 +85,8 @@ public class Repository {
     // ---------------- routine ----------------
     public LiveData<List<ClassSession>> sessionsForDay(int day) { return db.sessionDao().observeDay(day); }
 
+    public LiveData<List<ClassSession>> allClassSessions() { return db.sessionDao().observeAll(); }
+
     public void saveSession(ClassSession s) {
         io(() -> {
             if (s.id == 0) s.id = db.sessionDao().insert(s); else db.sessionDao().update(s);

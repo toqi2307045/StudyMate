@@ -24,6 +24,7 @@
         </activity>
         <activity android:name=".ui.CoursesActivity" />
         <activity android:name=".ui.RoutineActivity" />
+        <activity android:name=".ui.CalendarActivity" />
         <activity android:name=".ui.AttendanceActivity" />
         <activity android:name=".ui.GpaActivity" />
         <activity android:name=".ui.AssignmentsActivity" />

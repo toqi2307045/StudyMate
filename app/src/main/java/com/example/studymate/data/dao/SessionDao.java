@@ -16,6 +16,9 @@ public interface SessionDao extends BaseDao<ClassSession> {
     List<ClassSession> forDay(int day);
 
     @Query("SELECT * FROM class_sessions ORDER BY dayOfWeek, startMin")
+    LiveData<List<ClassSession>> observeAll();
+
+    @Query("SELECT * FROM class_sessions ORDER BY dayOfWeek, startMin")
     List<ClassSession> all();
 
     @Query("SELECT * FROM class_sessions WHERE courseId = :courseId")

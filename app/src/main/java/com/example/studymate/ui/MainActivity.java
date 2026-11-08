@@ -97,6 +97,7 @@ public class MainActivity extends BaseActivity {
 
         Tile[] tiles = {
                 new Tile("📅", "Class Routine", RoutineActivity.class),
+                new Tile("🗓️", "Calendar", CalendarActivity.class),
                 new Tile("✅", "Attendance", AttendanceActivity.class),
                 new Tile("🎓", "GPA / CGPA", GpaActivity.class),
                 new Tile("📝", "Assignments", AssignmentsActivity.class),
