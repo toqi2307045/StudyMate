@@ -71,6 +71,8 @@ public class FormDialog {
         root.setPadding(p, UiUtil.dp(ctx, 8), p, 0);
     }
 
+    public void addView(View v) { add(v); }
+
     private void add(View v) {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);

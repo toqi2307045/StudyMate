@@ -2,13 +2,17 @@ package com.example.studymate.data;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.example.studymate.data.dao.AssignmentDao;
 import com.example.studymate.data.dao.AttendanceDao;
 import com.example.studymate.data.dao.BookmarkDao;
+import com.example.studymate.data.dao.ContactDao;
 import com.example.studymate.data.dao.CourseDao;
 import com.example.studymate.data.dao.CourseFileDao;
 import com.example.studymate.data.dao.ExamDao;
@@ -22,6 +26,7 @@ import com.example.studymate.data.entity.Assignment;
 import com.example.studymate.data.entity.AttendanceRecord;
 import com.example.studymate.data.entity.Bookmark;
 import com.example.studymate.data.entity.ClassSession;
+import com.example.studymate.data.entity.Contact;
 import com.example.studymate.data.entity.Course;
 import com.example.studymate.data.entity.CourseFile;
 import com.example.studymate.data.entity.Exam;
@@ -34,8 +39,8 @@ import com.example.studymate.data.entity.StudySession;
 @Database(entities = {
         Course.class, ClassSession.class, AttendanceRecord.class, Semester.class,
         GradeEntry.class, Assignment.class, Exam.class, Note.class, StudySession.class,
-        CourseFile.class, RecentFile.class, Bookmark.class
-}, version = 1, exportSchema = false)
+        CourseFile.class, RecentFile.class, Bookmark.class, Contact.class
+}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract CourseDao courseDao();
@@ -50,6 +55,14 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CourseFileDao courseFileDao();
     public abstract RecentFileDao recentFileDao();
     public abstract BookmarkDao bookmarkDao();
+    public abstract ContactDao contactDao();
+
+    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS `contacts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `syncId` TEXT, `type` INTEGER NOT NULL, `name` TEXT, `phone` TEXT, `email` TEXT, `rollOrDesignation` TEXT, `photoPath` TEXT, `updatedAt` INTEGER NOT NULL)");
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_contacts_syncId` ON `contacts` (`syncId`)");
+        }
+    };
 
     private static volatile AppDatabase instance;
 
@@ -58,7 +71,10 @@ public abstract class AppDatabase extends RoomDatabase {
             synchronized (AppDatabase.class) {
                 if (instance == null) {
                     instance = Room.databaseBuilder(context.getApplicationContext(),
-                            AppDatabase.class, "StudyMate.db").build();
+                            AppDatabase.class, "StudyMate.db")
+                            .addMigrations(MIGRATION_1_2)
+                            .fallbackToDestructiveMigration()
+                            .build();
                 }
             }
         }

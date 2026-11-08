@@ -1,6 +1,7 @@
 package com.example.studymate.data;
 
 import android.content.Context;
+import android.net.Uri;
 
 import androidx.lifecycle.LiveData;
 
@@ -9,6 +10,7 @@ import com.example.studymate.data.entity.Assignment;
 import com.example.studymate.data.entity.AttendanceRecord;
 import com.example.studymate.data.entity.Bookmark;
 import com.example.studymate.data.entity.ClassSession;
+import com.example.studymate.data.entity.Contact;
 import com.example.studymate.data.entity.Course;
 import com.example.studymate.data.entity.CourseFile;
 import com.example.studymate.data.entity.Exam;
@@ -17,7 +19,9 @@ import com.example.studymate.data.entity.Note;
 import com.example.studymate.data.entity.RecentFile;
 import com.example.studymate.data.entity.Semester;
 import com.example.studymate.data.entity.StudySession;
+import com.example.studymate.firebase.ContactSync;
 import com.example.studymate.util.AppExecutors;
+import com.example.studymate.util.ContactPhotos;
 import com.example.studymate.util.NotificationHelper;
 import com.example.studymate.util.ReminderScheduler;
 import com.example.studymate.util.RoutineShare;
@@ -25,6 +29,7 @@ import com.example.studymate.widget.RoutineWidgetProvider;
 import com.example.studymate.util.GradeScale;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /** Single access point for all data + the side effects (reminders, widget, notifications). */
 public class Repository {
@@ -290,6 +295,31 @@ public class Repository {
     }
 
     public void deleteBookmark(Bookmark b) { io(() -> db.bookmarkDao().delete(b)); }
+
+    // ---------------- contacts ----------------
+    public LiveData<List<Contact>> contacts() { return db.contactDao().observeAll(); }
+
+    public void saveContact(Contact c, Uri newPhoto, boolean removePhoto) {
+        io(() -> {
+            if (c.syncId == null) c.syncId = UUID.randomUUID().toString();
+            if (removePhoto) { ContactPhotos.delete(c.photoPath); c.photoPath = null; }
+            if (newPhoto != null) {
+                try { c.photoPath = ContactPhotos.saveFromUri(app, c.syncId, newPhoto); }
+                catch (java.io.IOException ignored) { }
+            }
+            c.updatedAt = System.currentTimeMillis();
+            if (c.id == 0) c.id = db.contactDao().insert(c); else db.contactDao().update(c);
+            ContactSync.pushOne(c);
+        });
+    }
+
+    public void deleteContact(Contact c) {
+        io(() -> {
+            ContactPhotos.delete(c.photoPath);
+            db.contactDao().delete(c);
+            ContactSync.deleteOne(c.syncId);
+        });
+    }
 
     // ---------------- backup ----------------
     public Map<String, List<Map<String, Object>>> snapshotBlocking() { return BackupManager.snapshot(db); }

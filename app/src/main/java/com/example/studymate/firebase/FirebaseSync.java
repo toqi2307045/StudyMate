@@ -35,6 +35,7 @@ public class FirebaseSync {
             if (callback != null) callback.onError("You must be signed in to sync data to the cloud.");
             return;
         }
+        ContactSync.syncNow(context, null);
 
         Repository repo = Repository.get(context);
         AppExecutors.io(() -> {
@@ -100,6 +101,7 @@ public class FirebaseSync {
             if (callback != null) callback.onError("You must be signed in to pull cloud data.");
             return;
         }
+        ContactSync.syncNow(context, null);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         String uid = user.getUid();

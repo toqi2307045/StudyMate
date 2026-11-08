@@ -42,6 +42,7 @@
         <activity android:name=".ui.CourseFilesActivity" />
         <activity android:name=".ui.MergePdfActivity" />
         <activity android:name=".ui.LoginActivity" />
+        <activity android:name=".ui.ContactsActivity" />
 
         <receiver android:name=".widget.RoutineWidgetProvider" android:exported="false">
             <intent-filter>
