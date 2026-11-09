@@ -109,6 +109,7 @@ public class MainActivity extends BaseActivity {
                 new Tile("📄", "PDF Reader", PdfLibraryActivity.class),
                 new Tile("🛠️", "Document Tools", DocumentToolsActivity.class),
                 new Tile("👥", "Contacts", ContactsActivity.class),
+                new Tile("📢", "Class Notices", NoticesActivity.class),
                 new Tile("🤖", "StudyMate Bot", AiTutorActivity.class),
                 new Tile("⚙️", "Settings & Backup", SettingsActivity.class),
         };

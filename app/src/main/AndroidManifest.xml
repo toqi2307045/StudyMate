@@ -45,6 +45,8 @@
         <activity android:name=".ui.ContactsActivity" />
         <activity android:name=".ui.AiTutorActivity" />
         <activity android:name=".ui.QuizActivity" />
+        <activity android:name=".ui.NoticesActivity" />
+        <activity android:name=".ui.ClassRoomActivity" />
 
         <receiver android:name=".widget.RoutineWidgetProvider" android:exported="false">
             <intent-filter>
