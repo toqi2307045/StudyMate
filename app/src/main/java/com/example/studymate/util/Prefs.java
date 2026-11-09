@@ -46,6 +46,24 @@ public final class Prefs {
 
     public static void setOpenRouterKey(Context c, String key) { putString(c, "openrouter_key", key); }
 
+    public static String nickname(Context c) {
+        String name = getString(c, "user_nickname", "");
+        if (name == null || name.trim().isEmpty()) {
+            com.google.firebase.auth.FirebaseUser u = com.example.studymate.firebase.FirebaseSync.currentUser();
+            if (u != null) {
+                if (u.getDisplayName() != null && !u.getDisplayName().trim().isEmpty()) {
+                    return u.getDisplayName();
+                } else if (u.getEmail() != null && u.getEmail().contains("@")) {
+                    return u.getEmail().substring(0, u.getEmail().indexOf('@'));
+                }
+            }
+            return "Student";
+        }
+        return name;
+    }
+
+    public static void setNickname(Context c, String name) { putString(c, "user_nickname", name); }
+
     public static String selectedAiModelId(Context c) { return getString(c, "ai_model_id", "gemini_flash"); }
 
     public static void setSelectedAiModelId(Context c, String id) { putString(c, "ai_model_id", id); }

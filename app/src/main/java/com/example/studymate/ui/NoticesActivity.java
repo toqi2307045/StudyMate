@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.studymate.databinding.ActivityListBinding;
 import com.example.studymate.databinding.ItemRowBinding;
 import com.example.studymate.firebase.FirebaseSync;
+import com.example.studymate.util.Prefs;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -69,51 +70,22 @@ public class NoticesActivity extends BaseActivity {
         FirebaseUser user = FirebaseSync.currentUser();
         if (user == null) return;
 
-        FirebaseFirestore.getInstance().collectionGroup("members")
-                .whereEqualTo("uid", user.getUid())
+        FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                .collection("joined_classes")
                 .addSnapshotListener((snapshots, e) -> {
                     if (e != null || snapshots == null) return;
-                    List<String> classIds = new ArrayList<>();
-                    Map<String, ClassItem> memberInfo = new HashMap<>();
-
-                    for (QueryDocumentSnapshot doc : snapshots) {
-                        String path = doc.getReference().getPath();
-                        String[] segments = path.split("/");
-                        if (segments.length >= 2) {
-                            String classId = segments[1];
-                            classIds.add(classId);
-                            ClassItem item = new ClassItem();
-                            item.id = classId;
-                            item.role = doc.getString("role");
-                            item.status = doc.getString("status");
-                            memberInfo.put(classId, item);
-                        }
-                    }
-
-                    if (classIds.isEmpty()) {
-                        classes.clear();
-                        adapter.notifyDataSetChanged();
-                        b.empty.setVisibility(View.VISIBLE);
-                        return;
-                    }
-
                     classes.clear();
-                    for (String cid : classIds) {
-                        FirebaseFirestore.getInstance().collection("classes").document(cid)
-                                .get()
-                                .addOnSuccessListener(classDoc -> {
-                                    if (classDoc.exists()) {
-                                        ClassItem item = memberInfo.get(cid);
-                                        if (item != null) {
-                                            item.name = classDoc.getString("name");
-                                            item.code = classDoc.getString("code");
-                                            classes.add(item);
-                                            adapter.notifyDataSetChanged();
-                                            b.empty.setVisibility(classes.isEmpty() ? View.VISIBLE : View.GONE);
-                                        }
-                                    }
-                                });
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        ClassItem item = new ClassItem();
+                        item.id = doc.getString("classId");
+                        item.name = doc.getString("name");
+                        item.code = doc.getString("code");
+                        item.role = doc.getString("role");
+                        item.status = doc.getString("status");
+                        if (item.id != null) classes.add(item);
                     }
+                    adapter.notifyDataSetChanged();
+                    b.empty.setVisibility(classes.isEmpty() ? View.VISIBLE : View.GONE);
                 });
     }
 
@@ -161,14 +133,25 @@ public class NoticesActivity extends BaseActivity {
                 .addOnSuccessListener(aVoid -> {
                     Map<String, Object> memberData = new HashMap<>();
                     memberData.put("uid", user.getUid());
-                    memberData.put("name", user.getDisplayName() != null ? user.getDisplayName() : user.getEmail());
+                    memberData.put("name", Prefs.nickname(this));
                     memberData.put("role", "admin");
                     memberData.put("status", "approved");
                     memberData.put("joinedAt", System.currentTimeMillis());
 
                     db.collection("classes").document(classId)
                             .collection("members").document(user.getUid())
-                            .set(memberData)
+                            .set(memberData);
+
+                    Map<String, Object> userClassData = new HashMap<>();
+                    userClassData.put("classId", classId);
+                    userClassData.put("name", className);
+                    userClassData.put("code", code);
+                    userClassData.put("role", "admin");
+                    userClassData.put("status", "approved");
+
+                    db.collection("users").document(user.getUid())
+                            .collection("joined_classes").document(classId)
+                            .set(userClassData)
                             .addOnSuccessListener(v -> UiUtil.toast(this, "Class created! Code: " + code));
                 })
                 .addOnFailureListener(e -> UiUtil.toast(this, "Failed to create class: " + e.getMessage()));
@@ -202,17 +185,31 @@ public class NoticesActivity extends BaseActivity {
                     }
                     DocumentSnapshot doc = qs.getDocuments().get(0);
                     String classId = doc.getId();
+                    String className = doc.getString("name");
+
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
                     Map<String, Object> memberData = new HashMap<>();
                     memberData.put("uid", user.getUid());
-                    memberData.put("name", user.getDisplayName() != null ? user.getDisplayName() : user.getEmail());
+                    memberData.put("name", Prefs.nickname(this));
                     memberData.put("role", "student");
                     memberData.put("status", "pending");
                     memberData.put("joinedAt", System.currentTimeMillis());
 
-                    FirebaseFirestore.getInstance().collection("classes").document(classId)
+                    db.collection("classes").document(classId)
                             .collection("members").document(user.getUid())
-                            .set(memberData)
+                            .set(memberData);
+
+                    Map<String, Object> userClassData = new HashMap<>();
+                    userClassData.put("classId", classId);
+                    userClassData.put("name", className);
+                    userClassData.put("code", code);
+                    userClassData.put("role", "student");
+                    userClassData.put("status", "pending");
+
+                    db.collection("users").document(user.getUid())
+                            .collection("joined_classes").document(classId)
+                            .set(userClassData)
                             .addOnSuccessListener(v -> UiUtil.toast(this, "Join request sent! Waiting for admin approval."))
                             .addOnFailureListener(e -> UiUtil.toast(this, "Failed to join: " + e.getMessage()));
                 });

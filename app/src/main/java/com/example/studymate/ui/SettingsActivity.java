@@ -48,6 +48,9 @@ public class SettingsActivity extends BaseActivity {
         setupToolbar(b.toolbar, "Settings & Backup", true);
         repo = Repository.get(this);
 
+        section("Profile");
+        nicknameSummary = buttonRow("Nickname", nicknameText(), v -> showNicknameDialog());
+
         section("Appearance");
         MaterialSwitch dark = switchRow("Dark mode", UiUtil.isNight(this));
         dark.setOnCheckedChangeListener((v, on) -> {
@@ -199,6 +202,27 @@ public class SettingsActivity extends BaseActivity {
     private TextView saveFolderSummary;
     private TextView gpaScaleSummary;
     private TextView aiKeySummary;
+    private TextView nicknameSummary;
+
+    private String nicknameText() {
+        return Prefs.nickname(this);
+    }
+
+    private void showNicknameDialog() {
+        FormDialog f = new FormDialog(this);
+        android.widget.EditText input = f.text("Your Nickname", Prefs.nickname(this));
+        f.show("Set Nickname", "Save", () -> {
+            String name = FormDialog.str(input).trim();
+            if (name.isEmpty()) {
+                input.setError("Nickname cannot be empty");
+                return false;
+            }
+            Prefs.setNickname(this, name);
+            if (nicknameSummary != null) nicknameSummary.setText(nicknameText());
+            UiUtil.toast(this, "Nickname saved: " + name);
+            return true;
+        });
+    }
 
     private String aiKeyText() {
         String k = Prefs.openRouterKey(this);

@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.studymate.databinding.ActivityListBinding;
 import com.example.studymate.databinding.ItemRowBinding;
 import com.example.studymate.firebase.FirebaseSync;
+import com.example.studymate.util.Prefs;
 import com.example.studymate.util.TimeUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseUser;
@@ -117,7 +118,7 @@ public class ClassRoomActivity extends BaseActivity {
         String noticeId = UUID.randomUUID().toString();
         Map<String, Object> noticeData = new HashMap<>();
         noticeData.put("id", noticeId);
-        noticeData.put("authorName", user.getDisplayName() != null ? user.getDisplayName() : user.getEmail());
+        noticeData.put("authorName", Prefs.nickname(this));
         noticeData.put("title", title);
         noticeData.put("content", content);
         noticeData.put("timestamp", System.currentTimeMillis());
@@ -174,14 +175,21 @@ public class ClassRoomActivity extends BaseActivity {
     }
 
     private void updateMemberStatus(String uid, String status) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
         if ("rejected".equals(status)) {
-            FirebaseFirestore.getInstance().collection("classes").document(classId)
+            db.collection("classes").document(classId)
                     .collection("members").document(uid)
+                    .delete();
+            db.collection("users").document(uid)
+                    .collection("joined_classes").document(classId)
                     .delete()
                     .addOnSuccessListener(v -> UiUtil.toast(this, "Request rejected"));
         } else {
-            FirebaseFirestore.getInstance().collection("classes").document(classId)
+            db.collection("classes").document(classId)
                     .collection("members").document(uid)
+                    .update("status", status);
+            db.collection("users").document(uid)
+                    .collection("joined_classes").document(classId)
                     .update("status", status)
                     .addOnSuccessListener(v -> UiUtil.toast(this, "Student approved!"));
         }
