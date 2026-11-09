@@ -51,13 +51,6 @@ public class SettingsActivity extends BaseActivity {
         section("Profile");
         nicknameSummary = buttonRow("Nickname", nicknameText(), v -> showNicknameDialog());
 
-        section("Appearance");
-        MaterialSwitch dark = switchRow("Dark mode", UiUtil.isNight(this));
-        dark.setOnCheckedChangeListener((v, on) -> {
-            Prefs.setDarkMode(this, on ? 1 : 0);
-            Prefs.applyTheme(this);
-        });
-
         section("Privacy");
         MaterialSwitch lock = switchRow("Lock notes with biometrics / screen lock", Prefs.notesLock(this));
         lock.setOnCheckedChangeListener((v, on) -> Prefs.putBool(this, "notes_lock", on));

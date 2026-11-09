@@ -48,6 +48,12 @@
         <activity android:name=".ui.NoticesActivity" />
         <activity android:name=".ui.ClassRoomActivity" />
 
+        <receiver android:name=".receiver.DarkThemeReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.CONFIGURATION_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <receiver android:name=".widget.RoutineWidgetProvider" android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

@@ -17,9 +17,7 @@ public final class Prefs {
     public static void setDarkMode(Context c, int v) { sp(c).edit().putInt("dark_mode", v).apply(); }
 
     public static void applyTheme(Context c) {
-        int m = darkMode(c);
-        AppCompatDelegate.setDefaultNightMode(m == 1 ? AppCompatDelegate.MODE_NIGHT_YES
-                : m == 0 ? AppCompatDelegate.MODE_NIGHT_NO : AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
     }
 
     public static int getInt(Context c, String key, int def) { return sp(c).getInt(key, def); }
