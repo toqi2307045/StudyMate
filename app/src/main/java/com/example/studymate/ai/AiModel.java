@@ -21,13 +21,13 @@ public class AiModel {
     }
 
     public static final List<AiModel> DEFAULT_MODELS = Arrays.asList(
-            new AiModel("gemini_flash", "Gemini 2.0 Flash", "Google", "google/gemini-2.0-flash-exp:free", true, "Fast & intelligent free model by Google"),
-            new AiModel("deepseek_r1", "DeepSeek R1", "DeepSeek", "deepseek/deepseek-r1:free", true, "Advanced reasoning & problem-solving model"),
-            new AiModel("llama_3_3", "Llama 3.3 70B", "Meta", "meta-llama/llama-3.3-70b-instruct:free", true, "Open-source 70B parameter general model"),
-            new AiModel("mistral_7b", "Mistral 7B", "Mistral", "mistralai/mistral-7b-instruct:free", true, "Compact & fast open model"),
+            new AiModel("gemini_flash", "Gemini 2.0 Flash", "Google", "google/gemini-2.0-flash-001", true, "Fast & intelligent model by Google"),
+            new AiModel("gemini_1_5", "Gemini 1.5 Flash", "Google", "google/gemini-flash-1.5", true, "High-speed multimodal model"),
+            new AiModel("deepseek_chat", "DeepSeek V3", "DeepSeek", "deepseek/deepseek-chat", true, "Advanced reasoning & problem-solving model"),
+            new AiModel("deepseek_r1", "DeepSeek R1", "DeepSeek", "deepseek/deepseek-r1", true, "DeepSeek R1 reasoning model"),
+            new AiModel("llama_3_3", "Llama 3.3 70B", "Meta", "meta-llama/llama-3.3-70b-instruct", true, "Open-source 70B parameter general model"),
             new AiModel("gpt_4o_mini", "GPT-4o Mini", "OpenAI", "openai/gpt-4o-mini", false, "Fast & smart compact model by OpenAI"),
-            new AiModel("claude_sonnet", "Claude 3.5 Sonnet", "Anthropic", "anthropic/claude-3.5-sonnet", false, "Top-tier coding & reasoning by Anthropic"),
-            new AiModel("grok_2", "Grok 2", "xAI", "xai/grok-2", false, "Grok 2 model by xAI")
+            new AiModel("claude_sonnet", "Claude 3.5 Sonnet", "Anthropic", "anthropic/claude-3.5-sonnet", false, "Top-tier coding & reasoning by Anthropic")
     );
 
     public static AiModel defaultModel() {

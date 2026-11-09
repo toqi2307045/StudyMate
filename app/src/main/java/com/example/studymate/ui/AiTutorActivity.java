@@ -61,7 +61,7 @@ public class AiTutorActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         b = ActivityAiTutorBinding.inflate(getLayoutInflater());
         setContentView(b.getRoot());
-        setupToolbar(b.toolbar, "AI Study Tutor", true);
+        setupToolbar(b.toolbar, "StudyMate Bot", true);
 
         vm = new ViewModelProvider(this).get(AiViewModel.class);
 
@@ -150,8 +150,8 @@ public class AiTutorActivity extends BaseActivity {
     private void checkConsentAndNetwork() {
         if (!Prefs.aiConsent(this)) {
             new MaterialAlertDialogBuilder(this)
-                    .setTitle("AI Tutor Online Notice")
-                    .setMessage("AI Tutor connects online to Google Gemini AI to analyze study materials, summarize text, and generate practice quizzes. Your prompt/file content will be sent securely to AI services.\n\nDo you wish to enable AI features?")
+                    .setTitle("StudyMate Bot Online Notice")
+                    .setMessage("StudyMate Bot connects online to analyze study materials, summarize text, and generate practice quizzes. Your prompt/file content will be sent securely to AI services.\n\nDo you wish to enable AI features?")
                     .setPositiveButton("Enable AI", (d, w) -> Prefs.setAiConsent(this, true))
                     .setNegativeButton("Disable AI", (d, w) -> {
                         Prefs.setAiEnabled(this, false);

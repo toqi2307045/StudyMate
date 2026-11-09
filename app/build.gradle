@@ -3,6 +3,12 @@ plugins {
     id 'com.google.gms.google-services'
 }
 
+Properties localProperties = new Properties()
+File localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(new java.io.FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace 'com.example.studymate'
     compileSdk 34
@@ -13,10 +19,12 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
+        buildConfigField "String", "OPENROUTER_KEY", "\"" + localProperties.getProperty("openrouter.key", "") + "\""
     }
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 
     compileOptions {

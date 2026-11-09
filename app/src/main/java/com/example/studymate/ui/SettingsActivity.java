@@ -97,7 +97,7 @@ public class SettingsActivity extends BaseActivity {
         section("GPA scale");
         gpaScaleSummary = buttonRow("Grading scale", gpaScaleText(), v -> pickGradeScale());
 
-        section("AI Study Tutor");
+        section("StudyMate Bot");
         MaterialSwitch aiSwitch = switchRow("Enable AI Study Features", Prefs.aiEnabled(this));
         aiSwitch.setOnCheckedChangeListener((v, on) -> Prefs.setAiEnabled(this, on));
         aiKeySummary = buttonRow("OpenRouter API Key", aiKeyText(), v -> showAiKeyDialog());

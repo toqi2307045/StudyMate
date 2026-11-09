@@ -2,6 +2,7 @@ package com.example.studymate.ai;
 
 import android.content.Context;
 
+import com.example.studymate.BuildConfig;
 import com.example.studymate.util.AppExecutors;
 import com.example.studymate.util.Prefs;
 
@@ -25,102 +26,136 @@ public class OpenRouterService {
         void onError(String errorMessage);
     }
 
+    private static final String[] FALLBACK_MODELS = {
+            "google/gemini-2.0-flash-001",
+            "google/gemini-flash-1.5",
+            "deepseek/deepseek-chat",
+            "meta-llama/llama-3.3-70b-instruct"
+    };
+
     public static void sendMessage(Context context, AiModel model, List<ChatMessage> history, Callback callback) {
-        String apiKey = Prefs.openRouterKey(context);
-        AppExecutors.io(() -> {
-            HttpURLConnection conn = null;
-            try {
-                URL url = new URL(API_URL);
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                conn.setRequestProperty("Accept", "application/json");
-                conn.setRequestProperty("HTTP-Referer", "https://github.com/studymate");
-                conn.setRequestProperty("X-Title", "StudyMate Android");
+        String savedKey = Prefs.openRouterKey(context);
+        String rawKey = (savedKey == null || savedKey.trim().isEmpty()) ? BuildConfig.OPENROUTER_KEY : savedKey;
+        final String apiKey = rawKey == null ? "" : rawKey.replaceAll("[\\s\"']", "");
 
-                if (apiKey != null && !apiKey.trim().isEmpty()) {
-                    conn.setRequestProperty("Authorization", "Bearer " + apiKey.trim());
-                }
+        AppExecutors.io(() -> sendRequestWithFallback(context, model.modelId, apiKey, history, callback, 0));
+    }
 
-                conn.setConnectTimeout(30000);
-                conn.setReadTimeout(45000);
-                conn.setDoOutput(true);
+    private static void sendRequestWithFallback(Context context, String modelId, String apiKey, List<ChatMessage> history, Callback callback, int attempt) {
+        HttpURLConnection conn = null;
+        try {
+            URL url = new URL(API_URL);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("HTTP-Referer", "https://github.com/studymate");
+            conn.setRequestProperty("X-Title", "StudyMate Android");
 
-                JSONObject payload = new JSONObject();
-                payload.put("model", model.modelId);
+            if (apiKey != null && !apiKey.trim().isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + apiKey.trim());
+            }
 
-                JSONArray messagesArray = new JSONArray();
+            conn.setConnectTimeout(25000);
+            conn.setReadTimeout(35000);
+            conn.setDoOutput(true);
 
-                JSONObject systemMsg = new JSONObject();
-                systemMsg.put("role", ChatMessage.ROLE_SYSTEM);
-                systemMsg.put("content", "You are StudyMate AI, an intelligent, helpful, concise study assistant for students. Answer only from the provided study material when given. Cite slides, pages, or sections where applicable. Explain concepts, answer questions, summarize material, and generate quizzes accurately.");
-                messagesArray.put(systemMsg);
+            JSONObject payload = new JSONObject();
+            payload.put("model", modelId);
 
-                for (ChatMessage msg : history) {
-                    JSONObject msgObj = new JSONObject();
-                    msgObj.put("role", msg.role);
-                    msgObj.put("content", msg.content);
-                    messagesArray.put(msgObj);
-                }
+            JSONArray messagesArray = new JSONArray();
 
-                payload.put("messages", messagesArray);
+            JSONObject systemMsg = new JSONObject();
+            systemMsg.put("role", ChatMessage.ROLE_SYSTEM);
+            systemMsg.put("content", "You are StudyMate AI, an intelligent, helpful, concise study assistant for students. Answer only from the provided study material when given. Cite slides, pages, or sections where applicable. Explain concepts, answer questions, summarize material, and generate quizzes accurately.");
+            messagesArray.put(systemMsg);
 
-                byte[] bodyBytes = payload.toString().getBytes(StandardCharsets.UTF_8);
-                try (OutputStream os = conn.getOutputStream()) {
-                    os.write(bodyBytes);
-                }
+            for (ChatMessage msg : history) {
+                JSONObject msgObj = new JSONObject();
+                msgObj.put("role", msg.role);
+                msgObj.put("content", msg.content);
+                messagesArray.put(msgObj);
+            }
 
-                int statusCode = conn.getResponseCode();
-                InputStream is = (statusCode >= 200 && statusCode < 300) ? conn.getInputStream() : conn.getErrorStream();
+            payload.put("messages", messagesArray);
 
-                StringBuilder sb = new StringBuilder();
-                if (is != null) {
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            sb.append(line);
-                        }
+            byte[] bodyBytes = payload.toString().getBytes(StandardCharsets.UTF_8);
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(bodyBytes);
+            }
+
+            int statusCode = conn.getResponseCode();
+            InputStream is = (statusCode >= 200 && statusCode < 300) ? conn.getInputStream() : conn.getErrorStream();
+
+            StringBuilder sb = new StringBuilder();
+            if (is != null) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        sb.append(line);
                     }
                 }
+            }
 
-                String responseStr = sb.toString();
+            String responseStr = sb.toString();
 
-                if (statusCode >= 200 && statusCode < 300) {
-                    JSONObject jsonResp = new JSONObject(responseStr);
-                    JSONArray choices = jsonResp.optJSONArray("choices");
-                    if (choices != null && choices.length() > 0) {
-                        JSONObject choice = choices.getJSONObject(0);
-                        JSONObject message = choice.optJSONObject("message");
-                        if (message != null) {
-                            String reply = message.optString("content", "");
+            if (statusCode >= 200 && statusCode < 300) {
+                JSONObject jsonResp = new JSONObject(responseStr);
+                JSONArray choices = jsonResp.optJSONArray("choices");
+                if (choices != null && choices.length() > 0) {
+                    JSONObject choice = choices.getJSONObject(0);
+                    JSONObject message = choice.optJSONObject("message");
+                    if (message != null) {
+                        String reply = message.optString("content", "");
+                        if (!reply.trim().isEmpty()) {
                             AppExecutors.main(() -> callback.onSuccess(reply));
                             return;
                         }
                     }
-                    AppExecutors.main(() -> callback.onError("No response text returned from model."));
-                } else {
-                    String errorMsg = "API Error (" + statusCode + ")";
-                    try {
-                        JSONObject errJson = new JSONObject(responseStr);
-                        if (errJson.has("error")) {
-                            JSONObject errObj = errJson.getJSONObject("error");
-                            if (errObj.has("message")) {
-                                errorMsg = errObj.getString("message");
-                            }
-                        }
-                    } catch (Exception ignored) { }
-                    if (statusCode == 401 || errorMsg.toLowerCase().contains("key")) {
-                        errorMsg = "OpenRouter API Key required. Tap 'API Key Settings' in the top right menu to enter your API key from openrouter.ai/keys.";
-                    }
-                    final String finalErr = errorMsg;
-                    AppExecutors.main(() -> callback.onError(finalErr));
                 }
-            } catch (Exception e) {
+            }
+
+            if (attempt < FALLBACK_MODELS.length - 1) {
+                String nextModel = FALLBACK_MODELS[attempt + 1];
+                if (!nextModel.equals(modelId)) {
+                    sendRequestWithFallback(context, nextModel, apiKey, history, callback, attempt + 1);
+                    return;
+                }
+            }
+
+            String errorMsg = "HTTP Error " + statusCode;
+            try {
+                JSONObject errJson = new JSONObject(responseStr);
+                if (errJson.has("error")) {
+                    JSONObject errObj = errJson.getJSONObject("error");
+                    if (errObj.has("message")) {
+                        errorMsg = errObj.getString("message");
+                    } else {
+                        errorMsg = errObj.toString();
+                    }
+                } else if (!responseStr.trim().isEmpty()) {
+                    errorMsg = responseStr;
+                }
+            } catch (Exception ignored) {
+                if (!responseStr.trim().isEmpty()) errorMsg = responseStr;
+            }
+
+            if (statusCode == 401) {
+                errorMsg = "Invalid or Missing OpenRouter API Key (401). Please verify your key at openrouter.ai/keys.\nDetails: " + errorMsg;
+            }
+
+            final String finalErr = errorMsg;
+            AppExecutors.main(() -> callback.onError(finalErr));
+
+        } catch (Exception e) {
+            if (attempt < FALLBACK_MODELS.length - 1) {
+                sendRequestWithFallback(context, FALLBACK_MODELS[attempt + 1], apiKey, history, callback, attempt + 1);
+            } else {
                 final String errMsg = "Network request failed: " + (e.getMessage() != null ? e.getMessage() : e.toString());
                 AppExecutors.main(() -> callback.onError(errMsg));
-            } finally {
-                if (conn != null) conn.disconnect();
             }
-        });
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
     }
 }

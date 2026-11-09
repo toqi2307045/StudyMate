@@ -76,6 +76,7 @@ public class DocumentToolsActivity extends AppCompatActivity {
         tools.add(new ToolItem("Image → PDF", "Scan or pick photos", R.drawable.ic_image, ContextCompat.getColor(this, R.color.tool_green), ImageToPdfActivity.class));
         tools.add(new ToolItem("Course Files", "Slides and past papers", R.drawable.ic_folder, ContextCompat.getColor(this, R.color.tool_teal), CourseFilesActivity.class));
         tools.add(new ToolItem("Merge PDFs", "Combine PDFs into one", R.drawable.ic_merge, ContextCompat.getColor(this, R.color.tool_purple), MergePdfActivity.class));
+        tools.add(new ToolItem("StudyMate Bot", "Multi-model AI assistant", R.drawable.ic_notification, ContextCompat.getColor(this, R.color.tool_purple), AiTutorActivity.class));
 
         RecyclerView rv = findViewById(R.id.rvTools);
         int widthDp = (int) (getResources().getDisplayMetrics().widthPixels

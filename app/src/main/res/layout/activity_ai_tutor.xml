@@ -143,14 +143,14 @@
                 android:padding="12dp"
                 android:textSize="15sp" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
+            <ImageButton
                 android:id="@+id/btnSend"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Send"
-                app:fabCustomSize="40dp"
-                app:icon="@drawable/ic_send"
-                app:maxImageSize="20dp" />
+                android:src="@drawable/ic_send"
+                app:tint="?attr/colorPrimary" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

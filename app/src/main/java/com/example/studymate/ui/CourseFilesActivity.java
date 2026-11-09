@@ -85,7 +85,7 @@ public class CourseFilesActivity extends BaseActivity {
         adapter.onClick(f -> Openers.open(this, f.uri, f.name, f.type));
         adapter.onLongClick(f -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
                 .setTitle(f.name)
-                .setItems(new String[]{"Open File", "🤖 Ask AI Tutor", "Remove File"}, (d, which) -> {
+                .setItems(new String[]{"Open File", "🤖 StudyMate Bot", "Remove File"}, (d, which) -> {
                     if (which == 0) Openers.open(this, f.uri, f.name, f.type);
                     else if (which == 1) {
                         startActivity(new android.content.Intent(this, AiTutorActivity.class)

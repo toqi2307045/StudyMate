@@ -33,7 +33,7 @@ public class AiViewModel extends AndroidViewModel {
 
         List<ChatMessage> list = new ArrayList<>();
         list.add(new ChatMessage(ChatMessage.ROLE_ASSISTANT,
-                "Hello! I am your AI Study Tutor. Ask me any study question, attach a course document, or generate a practice quiz!"));
+                "Hello! I am StudyMate Bot. Ask me any study question, attach a course document, or generate a practice quiz!"));
         messages.setValue(list);
     }
 
