@@ -83,8 +83,18 @@ public class CourseFilesActivity extends BaseActivity {
             r.trailing.setText(f.type.toUpperCase());
         });
         adapter.onClick(f -> Openers.open(this, f.uri, f.name, f.type));
-        adapter.onLongClick(f -> UiUtil.confirm(this, "Remove file?", "Removes it from this course (the file itself is not deleted).",
-                "Remove", () -> vm.deleteFile(f)));
+        adapter.onLongClick(f -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle(f.name)
+                .setItems(new String[]{"Open File", "🤖 Ask AI Tutor", "Remove File"}, (d, which) -> {
+                    if (which == 0) Openers.open(this, f.uri, f.name, f.type);
+                    else if (which == 1) {
+                        startActivity(new android.content.Intent(this, AiTutorActivity.class)
+                                .putExtra("uri", f.uri)
+                                .putExtra("name", f.name));
+                    } else if (which == 2) {
+                        UiUtil.confirm(this, "Remove file?", "Removes it from this course.", "Remove", () -> vm.deleteFile(f));
+                    }
+                }).show());
         b.recycler.setLayoutManager(new LinearLayoutManager(this));
         b.recycler.setAdapter(adapter);
 

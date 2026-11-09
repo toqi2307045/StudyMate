@@ -43,6 +43,8 @@
         <activity android:name=".ui.MergePdfActivity" />
         <activity android:name=".ui.LoginActivity" />
         <activity android:name=".ui.ContactsActivity" />
+        <activity android:name=".ui.AiTutorActivity" />
+        <activity android:name=".ui.QuizActivity" />
 
         <receiver android:name=".widget.RoutineWidgetProvider" android:exported="false">
             <intent-filter>

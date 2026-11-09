@@ -109,6 +109,7 @@ public class MainActivity extends BaseActivity {
                 new Tile("📄", "PDF Reader", PdfLibraryActivity.class),
                 new Tile("🛠️", "Document Tools", DocumentToolsActivity.class),
                 new Tile("👥", "Contacts", ContactsActivity.class),
+                new Tile("🤖", "AI Tutor", AiTutorActivity.class),
                 new Tile("⚙️", "Settings & Backup", SettingsActivity.class),
         };
         b.tiles.setLayoutManager(new GridLayoutManager(this, 2));

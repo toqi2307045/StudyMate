@@ -42,5 +42,21 @@ public final class Prefs {
 
     public static void putString(Context c, String key, String v) { sp(c).edit().putString(key, v).apply(); }
 
+    public static String openRouterKey(Context c) { return getString(c, "openrouter_key", ""); }
+
+    public static void setOpenRouterKey(Context c, String key) { putString(c, "openrouter_key", key); }
+
+    public static String selectedAiModelId(Context c) { return getString(c, "ai_model_id", "gemini_flash"); }
+
+    public static void setSelectedAiModelId(Context c, String id) { putString(c, "ai_model_id", id); }
+
+    public static boolean aiEnabled(Context c) { return getBool(c, "ai_enabled", true); }
+
+    public static void setAiEnabled(Context c, boolean v) { putBool(c, "ai_enabled", v); }
+
+    public static boolean aiConsent(Context c) { return getBool(c, "ai_consent", false); }
+
+    public static void setAiConsent(Context c, boolean v) { putBool(c, "ai_consent", v); }
+
     public static void remove(Context c, String key) { sp(c).edit().remove(key).apply(); }
 }

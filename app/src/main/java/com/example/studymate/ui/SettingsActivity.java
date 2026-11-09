@@ -96,6 +96,12 @@ public class SettingsActivity extends BaseActivity {
         buttonRow("Import backup (JSON or CSV)", "Replaces the data currently in the app", v -> importPicker.launch(new String[]{"*/*"}));
         section("GPA scale");
         gpaScaleSummary = buttonRow("Grading scale", gpaScaleText(), v -> pickGradeScale());
+
+        section("AI Study Tutor");
+        MaterialSwitch aiSwitch = switchRow("Enable AI Study Features", Prefs.aiEnabled(this));
+        aiSwitch.setOnCheckedChangeListener((v, on) -> Prefs.setAiEnabled(this, on));
+        aiKeySummary = buttonRow("OpenRouter API Key", aiKeyText(), v -> showAiKeyDialog());
+
         section("Saved PDFs");
         saveFolderSummary = buttonRow("Folder for merged & converted PDFs", PdfStorage.describe(this),
                 v -> folderPicker.launch(null));
@@ -192,6 +198,28 @@ public class SettingsActivity extends BaseActivity {
     }
     private TextView saveFolderSummary;
     private TextView gpaScaleSummary;
+    private TextView aiKeySummary;
+
+    private String aiKeyText() {
+        String k = Prefs.openRouterKey(this);
+        if (k == null || k.trim().isEmpty()) {
+            return "No key set (free OpenRouter models work out of the box)";
+        }
+        return "Key: " + (k.length() > 8 ? k.substring(0, 4) + "..." + k.substring(k.length() - 4) : "••••••••");
+    }
+
+    private void showAiKeyDialog() {
+        FormDialog f = new FormDialog(this);
+        android.widget.EditText input = f.text("API Key", Prefs.openRouterKey(this));
+        input.setHint("Paste sk-or-v1-... key here");
+        f.show("OpenRouter API Key", "Save", () -> {
+            String key = FormDialog.str(input).trim();
+            Prefs.setOpenRouterKey(this, key);
+            if (aiKeySummary != null) aiKeySummary.setText(aiKeyText());
+            UiUtil.toast(this, key.isEmpty() ? "Key cleared" : "API Key saved");
+            return true;
+        });
+    }
     private final ActivityResultLauncher<Uri> folderPicker =
             registerForActivityResult(new ActivityResultContracts.OpenDocumentTree(), uri -> {
                 if (uri == null) return;
