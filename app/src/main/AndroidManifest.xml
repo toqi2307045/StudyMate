@@ -36,8 +36,6 @@
         <activity android:name=".ui.DocumentToolsActivity" />
         <activity android:name=".ui.PdfLibraryActivity" />
         <activity android:name=".ui.PdfReaderActivity" />
-        <activity android:name=".ui.PptxViewerActivity" />
-        <activity android:name=".ui.DocxViewerActivity" />
         <activity android:name=".ui.ImageToPdfActivity" />
         <activity android:name=".ui.CourseFilesActivity" />
         <activity android:name=".ui.MergePdfActivity" />
