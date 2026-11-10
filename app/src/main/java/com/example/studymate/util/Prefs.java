@@ -28,6 +28,18 @@ public final class Prefs {
 
     public static void putBool(Context c, String key, boolean v) { sp(c).edit().putBoolean(key, v).apply(); }
 
+    public static long getLong(Context c, String key, long def) { return sp(c).getLong(key, def); }
+
+    public static void putLong(Context c, String key, long v) { sp(c).edit().putLong(key, v).apply(); }
+
+    public static boolean isNoticeNotified(Context c, String noticeId) {
+        return getBool(c, "notif_seen_" + noticeId, false);
+    }
+
+    public static void markNoticeNotified(Context c, String noticeId) {
+        putBool(c, "notif_seen_" + noticeId, true);
+    }
+
     public static int classLeadMin(Context c) { return getInt(c, "class_lead_min", 10); }
     public static int assignLeadHours(Context c) { return getInt(c, "assign_lead_h", 12); }
     public static boolean notesLock(Context c) { return getBool(c, "notes_lock", false); }

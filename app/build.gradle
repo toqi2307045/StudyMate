@@ -62,10 +62,11 @@ dependencies {
     implementation 'androidx.biometric:biometric:1.1.0'
     implementation 'com.google.zxing:core:3.5.2'
 
-    // Firebase BoM + Auth + Firestore + Vertex AI / AI Logic
+    // Firebase BoM + Auth + Firestore + Realtime Database + Vertex AI / AI Logic
     implementation platform('com.google.firebase:firebase-bom:33.9.0')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-database'
     implementation 'com.google.firebase:firebase-vertexai'
     implementation 'org.reactivestreams:reactive-streams:1.0.4'
 }

@@ -18,6 +18,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.studymate.databinding.ActivityListBinding;
 import com.example.studymate.databinding.ItemRowBinding;
 import com.example.studymate.firebase.FirebaseSync;
+import com.example.studymate.firebase.RealtimeDbManager;
+import com.example.studymate.util.NoticeWorker;
+import com.example.studymate.util.NotificationHelper;
 import com.example.studymate.util.Prefs;
 import com.example.studymate.util.TimeUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -48,6 +51,40 @@ public class ClassRoomActivity extends BaseActivity {
     private String classId, className, role, classCode;
     private final List<NoticeItem> notices = new ArrayList<>();
     private NoticeAdapter adapter;
+    private com.example.studymate.receiver.AirplaneModeReceiver airplaneReceiver;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkAirplaneMode(com.example.studymate.receiver.AirplaneModeReceiver.isAirplaneModeOn(this));
+        if (airplaneReceiver == null) {
+            airplaneReceiver = new com.example.studymate.receiver.AirplaneModeReceiver(this::checkAirplaneMode);
+        }
+        try {
+            registerReceiver(airplaneReceiver, new android.content.IntentFilter(android.content.Intent.ACTION_AIRPLANE_MODE_CHANGED));
+        } catch (Exception ignored) { }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (airplaneReceiver != null) {
+            try { unregisterReceiver(airplaneReceiver); } catch (Exception ignored) { }
+        }
+    }
+
+    private void checkAirplaneMode(boolean isAirplaneModeOn) {
+        if (isAirplaneModeOn) {
+            b.empty.setText("✈️ Notice feature is unavailable in airplane mode.");
+            b.empty.setVisibility(View.VISIBLE);
+            b.fab.setEnabled(false);
+            b.recycler.setVisibility(View.GONE);
+        } else {
+            b.fab.setEnabled(true);
+            b.recycler.setVisibility(View.VISIBLE);
+            loadNotices();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,7 +163,14 @@ public class ClassRoomActivity extends BaseActivity {
         FirebaseFirestore.getInstance().collection("classes").document(classId)
                 .collection("notices").document(noticeId)
                 .set(noticeData)
-                .addOnSuccessListener(v -> UiUtil.toast(this, "Notice published"))
+                .addOnSuccessListener(v -> {
+                    UiUtil.toast(this, "Notice published");
+                    RealtimeDbManager.publishClassNotice(this, classId, className, title, content);
+                    String notifTitle = "📢 " + (className != null ? className : "Class Notice");
+                    String notifText = Prefs.nickname(this) + ": " + title + "\n" + content;
+                    NotificationHelper.show(this, NotificationHelper.CH_CLASS, noticeId.hashCode(), notifTitle, notifText);
+                    NoticeWorker.triggerImmediate(this);
+                })
                 .addOnFailureListener(e -> UiUtil.toast(this, "Failed to publish: " + e.getMessage()));
     }
 

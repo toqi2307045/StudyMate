@@ -1,6 +1,7 @@
 package com.example.studymate.ui;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,6 +41,40 @@ public class NoticesActivity extends BaseActivity {
     private ActivityListBinding b;
     private final List<ClassItem> classes = new ArrayList<>();
     private ClassAdapter adapter;
+    private com.example.studymate.receiver.AirplaneModeReceiver airplaneReceiver;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkAirplaneMode(com.example.studymate.receiver.AirplaneModeReceiver.isAirplaneModeOn(this));
+        if (airplaneReceiver == null) {
+            airplaneReceiver = new com.example.studymate.receiver.AirplaneModeReceiver(this::checkAirplaneMode);
+        }
+        try {
+            registerReceiver(airplaneReceiver, new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED));
+        } catch (Exception ignored) { }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (airplaneReceiver != null) {
+            try { unregisterReceiver(airplaneReceiver); } catch (Exception ignored) { }
+        }
+    }
+
+    private void checkAirplaneMode(boolean isAirplaneModeOn) {
+        if (isAirplaneModeOn) {
+            b.empty.setText("✈️ Notice feature is unavailable in airplane mode.");
+            b.empty.setVisibility(View.VISIBLE);
+            b.fab.setEnabled(false);
+            b.recycler.setVisibility(View.GONE);
+        } else {
+            b.fab.setEnabled(true);
+            b.recycler.setVisibility(View.VISIBLE);
+            loadClasses();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

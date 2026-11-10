@@ -54,6 +54,12 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".receiver.AirplaneModeReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.AIRPLANE_MODE" />
+            </intent-filter>
+        </receiver>
+
         <receiver android:name=".widget.RoutineWidgetProvider" android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
