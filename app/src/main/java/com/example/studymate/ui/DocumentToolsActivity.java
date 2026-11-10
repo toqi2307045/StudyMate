@@ -2,7 +2,6 @@ package com.example.studymate.ui;
 
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,8 +10,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -21,41 +18,12 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.studymate.R;
-import com.example.studymate.util.FileUtil;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DocumentToolsActivity extends AppCompatActivity {
-
-    private final ActivityResultLauncher<String[]> pptxPicker =
-            registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> openFile(uri, PptxViewerActivity.class, false));
-
-    private final ActivityResultLauncher<String[]> pptxToPdfPicker =
-            registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> openFile(uri, PptxViewerActivity.class, true));
-
-    private final ActivityResultLauncher<String[]> docxPicker =
-            registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> openFile(uri, DocxViewerActivity.class, false));
-
-    private final ActivityResultLauncher<String[]> docxToPdfPicker =
-            registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> openFile(uri, DocxViewerActivity.class, true));
-
-    private void openFile(Uri uri, Class<?> target, boolean autoAction) {
-        if (uri == null) return;
-        FileUtil.takePersist(this, uri);
-        Intent intent = new Intent(this, target)
-                .putExtra("uri", uri.toString())
-                .putExtra("name", FileUtil.displayName(this, uri));
-        if (autoAction) {
-            if (target == PptxViewerActivity.class) {
-                intent.putExtra("autoConvert", true);
-            } else if (target == DocxViewerActivity.class) {
-                intent.putExtra("autoExport", true);
-            }
-        }
-        startActivity(intent);
-    }
 
     @Override
     protected void onCreate(Bundle b) {
@@ -69,10 +37,6 @@ public class DocumentToolsActivity extends AppCompatActivity {
 
         List<ToolItem> tools = new ArrayList<>();
         tools.add(new ToolItem("PDF Reader", "Open, zoom, bookmark", R.drawable.ic_pdf, ContextCompat.getColor(this, R.color.tool_red), PdfLibraryActivity.class));
-        tools.add(new ToolItem("PPTX Viewer", "Swipe through slides", R.drawable.ic_slideshow, ContextCompat.getColor(this, R.color.tool_orange), ToolItem.ActionType.PICK_PPTX));
-        tools.add(new ToolItem("PPTX → PDF", "Convert slides to PDF", R.drawable.ic_swap, ContextCompat.getColor(this, R.color.tool_amber), ToolItem.ActionType.PICK_PPTX_TO_PDF));
-        tools.add(new ToolItem("DOCX Reader", "Read Word documents", R.drawable.ic_description, ContextCompat.getColor(this, R.color.tool_blue), ToolItem.ActionType.PICK_DOCX));
-        tools.add(new ToolItem("DOCX → PDF", "Export Word as PDF", R.drawable.ic_swap, ContextCompat.getColor(this, R.color.tool_indigo), ToolItem.ActionType.PICK_DOCX_TO_PDF));
         tools.add(new ToolItem("Image → PDF", "Scan or pick photos", R.drawable.ic_image, ContextCompat.getColor(this, R.color.tool_green), ImageToPdfActivity.class));
         tools.add(new ToolItem("Course Files", "Slides and past papers", R.drawable.ic_folder, ContextCompat.getColor(this, R.color.tool_teal), CourseFilesActivity.class));
         tools.add(new ToolItem("Merge PDFs", "Combine PDFs into one", R.drawable.ic_merge, ContextCompat.getColor(this, R.color.tool_purple), MergePdfActivity.class));
@@ -121,16 +85,8 @@ public class DocumentToolsActivity extends AppCompatActivity {
             h.iconWrap.setBackground(bg);
 
             h.itemView.setOnClickListener(v -> {
-                if (it.actionType == ToolItem.ActionType.LAUNCH_ACTIVITY && it.target != null) {
+                if (it.target != null) {
                     startActivity(new Intent(DocumentToolsActivity.this, it.target));
-                } else if (it.actionType == ToolItem.ActionType.PICK_PPTX) {
-                    pptxPicker.launch(new String[]{"*/*"});
-                } else if (it.actionType == ToolItem.ActionType.PICK_PPTX_TO_PDF) {
-                    pptxToPdfPicker.launch(new String[]{"*/*"});
-                } else if (it.actionType == ToolItem.ActionType.PICK_DOCX) {
-                    docxPicker.launch(new String[]{"*/*"});
-                } else if (it.actionType == ToolItem.ActionType.PICK_DOCX_TO_PDF) {
-                    docxToPdfPicker.launch(new String[]{"*/*"});
                 }
             });
         }
